@@ -14,5 +14,7 @@ Lokale Prüfung: 46 Unit-Tests ohne Fehler; Android Lint ohne Fehler
 (28 Warnungen). Die synthetischen Testbelege wurden validiert.
 
 Ergebnisordner: `output/test-runs/20261101-202056-907-isolated-app/`.
-Vor einem öffentlichen Release sind Release-Signierung und die geplante
-Sicherung des Signierschlüssels noch zu klären.
+Der signierte Release-Build 0.27.0 wurde erstellt und mit `apksigner`
+verifiziert. Der neue Release-Schlüssel wird im privaten AppDev-Depot gesichert.
+Die Release-APK selbst wurde nicht zusätzlich auf dem Handy installiert, damit
+die normale App und ihre Daten unberührt bleiben.

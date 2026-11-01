@@ -71,6 +71,10 @@ Das erzeugte APK liegt unter
 
 Der Quellstand ist 0.27.0. Eine signierte Release-APK wird separat gebaut;
 die privaten Signierdaten gehören nicht in dieses Repository.
+Die Schritte für einen signierten Build stehen in
+[`docs/RELEASE.md`](docs/RELEASE.md).
+Die geprüfte signierte APK 0.27.0 liegt unter
+[`releases/Finanzkumpel-0.27.0.apk`](releases/Finanzkumpel-0.27.0.apk).
 
 ## Wichtiger Prototyp-Hinweis
 
