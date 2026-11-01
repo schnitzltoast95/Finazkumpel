@@ -1,0 +1,9 @@
+// Keep destructive instrumentation fixtures separate from the installed app.
+gradle.beforeProject { project ->
+    project.pluginManager.withPlugin('com.android.application') {
+        project.extensions.getByName('androidComponents').finalizeDsl { android ->
+            android.buildTypes.getByName('debug').applicationIdSuffix = '.uitest'
+            android.defaultConfig.testApplicationId = 'de.quartalsmappe.app.uitest.test'
+        }
+    }
+}

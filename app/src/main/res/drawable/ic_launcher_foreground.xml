@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+    <!-- Getrennte Brauen und ein asymmetrischer Blitz-Zausel vermeiden die Fahrradform. -->
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#496B12"
+        android:strokeWidth="5"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M26,44 L33,32 L47,38 M47,30 L53,22 L55,29 L61,25 M60,37 L75,31 L82,44" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#496B12"
+        android:strokeWidth="6"
+        android:pathData="M40,36 C32.3,36 26,42.3 26,50 C26,57.7 32.3,64 40,64 C47.7,64 54,57.7 54,50 C54,42.3 47.7,36 40,36 Z M68,36 C60.3,36 54,42.3 54,50 C54,57.7 60.3,64 68,64 C75.7,64 82,57.7 82,50 C82,42.3 75.7,36 68,36 Z" />
+    <path
+        android:fillColor="#263A09"
+        android:pathData="M40,46 C37.8,46 36,47.8 36,50 C36,52.2 37.8,54 40,54 C42.2,54 44,52.2 44,50 C44,47.8 42.2,46 40,46 Z M68,46 C65.8,46 64,47.8 64,50 C64,52.2 65.8,54 68,54 C70.2,54 72,52.2 72,50 C72,47.8 70.2,46 68,46 Z" />
+    <path
+        android:fillColor="@android:color/transparent"
+        android:strokeColor="#789C00"
+        android:strokeWidth="7"
+        android:strokeLineCap="round"
+        android:strokeLineJoin="round"
+        android:pathData="M42,68 L52,78 L70,57" />
+</vector>
+

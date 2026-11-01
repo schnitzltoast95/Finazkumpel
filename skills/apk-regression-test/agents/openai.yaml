@@ -1,0 +1,6 @@
+interface:
+  display_name: "APK Regressionstest"
+  short_description: "Neue APK installieren und vollstaendig testen"
+  default_prompt: "Nutze $apk-regression-test, um die neueste APK sauber zu installieren und den vollstaendigen Regressionstest auszufuehren."
+policy:
+  allow_implicit_invocation: true
