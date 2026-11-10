@@ -312,9 +312,12 @@ fun InvoiceEditorScreen(
     }
 
     fun save(invoice: InvoiceCase) {
-        runCatching {
-            store.saveInvoice(invoice)
-            selectedUri?.let { uri ->
+        runCatching { store.saveInvoice(invoice) }.onFailure {
+            error = it.message ?: "Der Vorgang konnte nicht gespeichert werden"
+            return
+        }
+        selectedUri?.let { uri ->
+            runCatching {
                 val date = invoiceDate ?: orderDate ?: today
                 val q = Quarter.current(date)
                 store.importDocument(
@@ -325,13 +328,14 @@ fun InvoiceEditorScreen(
                     periodYear = q.year,
                     periodQuarter = q.number,
                 )
+            }.onFailure {
+                error = "Der Vorgang ist gespeichert, aber die Datei konnte nicht angehängt werden: " +
+                    (it.message ?: "Bitte wähle die Datei erneut aus und versuche es noch einmal.")
+                return
             }
-        }.onSuccess {
-            error = null
-            onDone(draftId)
-        }.onFailure {
-            error = it.message ?: "Der Vorgang konnte nicht gespeichert werden"
         }
+        error = null
+        onDone(draftId)
     }
 
     LazyColumn(
