@@ -694,8 +694,7 @@ fun InvoiceDetailScreen(
                             },
                         )
                     }
-                    signals.messages.filterNot { invoice.invoiceDate == null && it in listOf("Rechnung fehlt", "Lieferung fehlt") }
-                        .forEach { Text("• $it") }
+                    signals.messages.forEach { Text("• $it") }
                 }
             }
         }

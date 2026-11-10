@@ -91,7 +91,7 @@ class InvoiceCaptureFlowTest {
                 )
             }
         }
-        composeRule.onNodeWithText("Vorhandenen Eintrag auswählen").assertIsDisplayed().performClick()
+        composeRule.onNodeWithText("Zu vorhandener Bestellung hinzufügen").assertIsDisplayed().performClick()
         composeRule.runOnIdle {
             assertEquals(1, existingRequests)
             assertTrue(store.invoices.isEmpty())
