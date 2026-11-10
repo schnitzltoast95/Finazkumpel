@@ -71,6 +71,18 @@ class AppStoreIntegrationTest {
     }
 
     @Test
+    fun backupIntervalAndPendingChanges_surviveStoreReload() {
+        val store = AppStore(context)
+        store.changeBackupIntervalDays(3)
+        store.saveInvoice(InvoiceCase(id = "pending-backup", supplier = "Testlieferant"))
+
+        val reloaded = AppStore(context)
+        assertEquals(3, reloaded.backupIntervalDays)
+        assertTrue(reloaded.hasPendingBackup)
+        assertEquals(null, reloaded.lastBackupAt)
+    }
+
+    @Test
     fun unreadableLocalDataIsProtectedUntilAValidBackupIsRestored() {
         val store = AppStore(context)
         val close = DailyClose(id = "recovery-close", businessDate = LocalDate.of(2026, 10, 12), zAmountCents = 1234)

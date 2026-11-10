@@ -134,14 +134,10 @@ fun QuarterScreen(
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(quarter.label, style = MaterialTheme.typography.titleMedium)
                 Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-                    TextButton(
-                        onClick = { changeQuarter(quarter.previous()) },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) { Text("Vorheriges Quartal") }
-                    TextButton(
-                        onClick = { changeQuarter(if (quarter.number == 4) Quarter(quarter.year + 1, 1) else Quarter(quarter.year, quarter.number + 1)) },
-                        modifier = Modifier.weight(1f).heightIn(min = 48.dp),
-                    ) { Text("Nächstes Quartal") }
+                    AppSecondaryButton("Vorheriges Quartal", Modifier.weight(1f)) { changeQuarter(quarter.previous()) }
+                    AppSecondaryButton("Nächstes Quartal", Modifier.weight(1f)) {
+                        changeQuarter(if (quarter.number == 4) Quarter(quarter.year + 1, 1) else Quarter(quarter.year, quarter.number + 1))
+                    }
                 }
                 Text(
                     "Prüfe die Einträge für die Finanzberaterin. Jahresunterlagen gehören in jedes Quartal ihres Jahres.",
@@ -155,18 +151,18 @@ fun QuarterScreen(
                 Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     SectionTitle("Noch zu ergänzen")
                     if (bankCount == 0) {
-                        TextButton(onClick = { onAddDocument(DocumentType.BANK_STATEMENT, quarter) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("export_add_bank")) {
-                            Text("Kontoauszug hinzufügen", modifier = Modifier.fillMaxWidth())
+                        AppSecondaryButton("Kontoauszug hinzufügen", Modifier.fillMaxWidth().testTag("export_add_bank")) {
+                            onAddDocument(DocumentType.BANK_STATEMENT, quarter)
                         }
                     }
                     if (cashExportCount == 0) {
-                        TextButton(onClick = { onAddDocument(DocumentType.CASH_EXPORT, quarter) }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp).testTag("export_add_cash")) {
-                            Text("Kassenexport hinzufügen", modifier = Modifier.fillMaxWidth())
+                        AppSecondaryButton("Kassenexport hinzufügen", Modifier.fillMaxWidth().testTag("export_add_cash")) {
+                            onAddDocument(DocumentType.CASH_EXPORT, quarter)
                         }
                     }
                     if (manifest.dailyClosesWithoutDocument > 0) {
-                        TextButton(onClick = { showDailyCloses = true }, modifier = Modifier.fillMaxWidth().heightIn(min = 48.dp)) {
-                            Text("${manifest.dailyClosesWithoutDocument} ${if (manifest.dailyClosesWithoutDocument == 1) "Tagesabschluss" else "Tagesabschlüsse"} ohne Z-Abschlag ansehen", modifier = Modifier.fillMaxWidth())
+                        AppSecondaryButton("${manifest.dailyClosesWithoutDocument} ${if (manifest.dailyClosesWithoutDocument == 1) "Tagesabschluss" else "Tagesabschlüsse"} ohne Z-Abschlag ansehen", Modifier.fillMaxWidth()) {
+                            showDailyCloses = true
                         }
                     }
                     Text("Diese Hinweise verhindern den Export nicht.", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
@@ -185,8 +181,8 @@ fun QuarterScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                     )
                     if (manifest.dailyCloses.isNotEmpty()) {
-                        TextButton(onClick = { showDailyCloses = !showDailyCloses }, modifier = Modifier.heightIn(min = 48.dp)) {
-                            Text(if (showDailyCloses) "Tagesumsätze ausblenden" else "Tagesumsätze ansehen und bearbeiten")
+                        AppSecondaryButton(if (showDailyCloses) "Tagesumsätze ausblenden" else "Tagesumsätze ansehen und bearbeiten", Modifier.fillMaxWidth()) {
+                            showDailyCloses = !showDailyCloses
                         }
                     }
                 }
@@ -205,16 +201,16 @@ fun QuarterScreen(
         item {
             Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 SectionTitle("Zusammenfassungen im Paket")
-                Text("Uebersicht.pdf", style = MaterialTheme.typography.titleSmall)
+                Text("Übersicht (PDF)", style = MaterialTheme.typography.titleSmall)
                 Text(
                     "Tagesabschlüsse und ${manifest.invoices.size} ${if (manifest.invoices.size == 1) "Rechnung / Bestellung" else "Rechnungen / Bestellungen"} mit Betrag, Status und Datumsangaben.",
                     style = MaterialTheme.typography.bodyMedium,
                 )
-                Text("Tagesumsaetze.csv", style = MaterialTheme.typography.titleSmall)
+                Text("Tagesumsätze (CSV)", style = MaterialTheme.typography.titleSmall)
                 Text("${manifest.dailyCloses.size} ${if (manifest.dailyCloses.size == 1) "Tagesumsatz" else "Tagesumsätze"} mit Datum, Betrag, Notiz und Z-Beleg-Status.", style = MaterialTheme.typography.bodyMedium)
                 if (manifest.invoices.isNotEmpty()) {
-                    TextButton(onClick = { showInvoices = !showInvoices }, modifier = Modifier.heightIn(min = 48.dp)) {
-                        Text(if (showInvoices) "Rechnungsangaben ausblenden" else "Rechnungen und Bestellungen prüfen")
+                    AppSecondaryButton(if (showInvoices) "Rechnungsangaben ausblenden" else "Rechnungen und Bestellungen prüfen", Modifier.fillMaxWidth()) {
+                        showInvoices = !showInvoices
                     }
                 }
             }

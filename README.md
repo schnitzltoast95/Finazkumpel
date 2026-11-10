@@ -19,7 +19,7 @@ Rechnungen und Quartalsunterlagen.
 - helle, ruhige Studio-Farbwelt in Grün, Limette und warmem Korall
 - auswählbarer Begleiter: Eule (mit ruhigem/zerzaustem Aufgaben-Zustand), Biene, Stachelschwein, Schaf oder Nacktkatze
 - zehn auswählbare Farbschemen mit Hell-/Dunkelmodus; Farbe und Tier werden sofort lokal gespeichert, unabhängig von Belegen und Sicherungen
-- helles, abstraktes Eulenlogo aus getrennten Brauen, Blitz-Zausel, zwei Ringen und Haken
+- neutrales App-Icon mit Dokument und Haken, unabhängig vom gewählten Begleiter
 - ausdrückliche Bestätigung vor jeder Änderung an bestehenden Einträgen
 - lokale, unveränderliche Vorversion bei jeder bestätigten Änderung
 - automatische ZIP-Sicherung in einen frei gewählten Android-Ordner; auf Wunsch separate Sicherungsstände
@@ -69,12 +69,12 @@ in [`docs/APK_TESTING.md`](docs/APK_TESTING.md) beschrieben.
 Das erzeugte APK liegt unter
 `app/build/outputs/apk/debug/app-debug.apk`.
 
-Der Quellstand ist 0.27.0. Eine signierte Release-APK wird separat gebaut;
+Der Quellstand ist 0.28.0. Eine signierte Release-APK wird separat gebaut;
 die privaten Signierdaten gehören nicht in dieses Repository.
 Die Schritte für einen signierten Build stehen in
 [`docs/RELEASE.md`](docs/RELEASE.md).
-Die geprüfte signierte APK 0.27.0 liegt unter
-[`releases/Finanzkumpel-0.27.0.apk`](releases/Finanzkumpel-0.27.0.apk).
+Die geprüfte signierte APK 0.28.0 liegt unter
+[`releases/Finanzkumpel-0.28.0.apk`](releases/Finanzkumpel-0.28.0.apk).
 
 ## Wichtiger Prototyp-Hinweis
 
@@ -82,7 +82,9 @@ Die Arbeitsdaten liegen im privaten App-Speicher des Handys. Unter
 „Einstellungen > Datensicherung“ sollte vor dem Einsatz mit echten
 Geschäftsdaten zusätzlich ein Ordner auf dem Gerät oder bei einem über Android
 eingebundenen Cloud-Anbieter gewählt werden. Die App aktualisiert dort nach
-gespeicherten Änderungen `Quartalsmappe_Aktuell.zip`. Unter Einstellungen kann
+gespeicherten Änderungen im einstellbaren Abstand (täglich, alle drei oder
+sieben Tage) `Quartalsmappe_Aktuell.zip`. Ohne Änderungen wird keine neue Datei
+angelegt. Android kann den Zeitpunkt im Hintergrund verschieben. Unter Einstellungen kann
 zusätzlich ein separater, datierter Sicherungsstand angelegt werden. Die ZIPs
 enthalten die aktuellen Daten, Originaldateien und gespeicherte Vorversionen.
 

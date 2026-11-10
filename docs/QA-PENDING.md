@@ -1,20 +1,28 @@
-# Teststatus für Version 0.27.0
+# Teststatus für Version 0.28.0
 
-Stand: 01.11.2026, 20:22 Uhr
+Stand: 10.11.2026, 22:58 Uhr
 
-Der Gerätetest wurde auf einem Nothing A001 mit Android 16 ausgeführt.
-Die isolierte App `de.quartalsmappe.app.uitest` (Version 0.27.0, Code 27)
-wurde sauber neu installiert. Die normale App und ihre Daten blieben unberührt.
+Auf einem Nothing A001 mit Android 16 wurden 64 Instrumentierungstests der
+isolierten App `de.quartalsmappe.app.uitest` ausgeführt. Der optionale
+Screenshot-Fixture-Test wurde dabei erwartungsgemäß übersprungen und danach
+separat erfolgreich gestartet. Die synthetischen Daten sind für den manuellen
+Test im isolierten App-Paket vorhanden. Die normale App wurde nicht gelöscht.
+Der vollständige Testlauf fand vor dem abschließenden Drive-Fix statt
+(Test-APK mit Versionscode 27). Den Drive-Fix und die Version 0.28.0 habe ich
+anschließend direkt auf dem Gerät geprüft, ohne die Testdaten erneut zu leeren.
 
-Ergebnis: 62 Instrumentierungstests bestanden, 1 Screenshot-Fixture-Test
-erwartungsgemäß übersprungen (nur mit `visual_seed=true` vorgesehen), 0 Fehler.
-Der Runner meldete `OK (63 tests)`.
+Die Unit-Tests und Android Lint waren erfolgreich. Die signierte Release-APK
+0.28.0 wurde gebaut, auf dem Gerät gestartet und mit `apksigner` gegen den
+dokumentierten Zertifikat-Fingerprint geprüft. Über Google Drive wurden in der
+signierten App 2 synthetische Tagesabschlüsse, 2 Vorgänge und 5 Dokumente
+erfolgreich eingelesen. Diese Daten bleiben für den manuellen Test erhalten.
 
-Lokale Prüfung: 46 Unit-Tests ohne Fehler; Android Lint ohne Fehler
-(28 Warnungen). Die synthetischen Testbelege wurden validiert.
+Google Drive wurde mit einem eigenen Unterordner unter `Test` geprüft:
+`Finanzkumpel-Test-20261110`. Ein gleichzeitiger Erstabgleich erzeugte zunächst
+zwei gleichnamige ZIP-Dateien. Der Konflikt wurde im Code behoben; ein erneuter
+Abgleich ließ genau eine `Quartalsmappe_Aktuell.zip` zurück. Nach einer
+synthetischen Änderung blieb der Status bis zum manuellen Abgleich ausstehend.
+Der tägliche Hintergrundlauf kann erst nach Ablauf des Intervalls
+beobachtet werden.
 
-Ergebnisordner: `output/test-runs/20261101-202056-907-isolated-app/`.
-Der signierte Release-Build 0.27.0 wurde erstellt und mit `apksigner`
-verifiziert. Der neue Release-Schlüssel wird im privaten AppDev-Depot gesichert.
-Die Release-APK selbst wurde nicht zusätzlich auf dem Handy installiert, damit
-die normale App und ihre Daten unberührt bleiben.
+Gerätetest: `output/test-runs/20261110-224125-574-app-debug/`.

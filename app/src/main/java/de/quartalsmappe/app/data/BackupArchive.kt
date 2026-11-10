@@ -79,7 +79,8 @@ object BackupArchive {
     ): BackupResult {
         val rootId = DocumentsContract.getTreeDocumentId(treeUri)
         val rootDocument = DocumentsContract.buildDocumentUriUsingTree(treeUri, rootId)
-        val existing = if (replaceExisting) findChild(context, treeUri, rootId, fileName) else null
+        val existingBackups = if (replaceExisting) findChildren(context, treeUri, rootId, fileName) else emptyList()
+        val existing = existingBackups.firstOrNull()
         val localArchive = File.createTempFile("quartalsmappe_backup_", ".zip", context.cacheDir)
         try {
             localArchive.outputStream().buffered().use { output ->
@@ -95,11 +96,12 @@ object BackupArchive {
                     zip.closeEntry()
 
                     documents.forEach { (document, file) ->
-                        if (file.exists()) {
-                            zip.putNextEntry(ZipEntry("documents/${document.storedFileName}"))
-                            file.inputStream().buffered().use { it.copyTo(zip) }
-                            zip.closeEntry()
+                        require(file.isFile && file.canRead()) {
+                            "Die Originaldatei ${document.originalFileName} fehlt. Die Sicherung wurde nicht überschrieben."
                         }
+                        zip.putNextEntry(ZipEntry("documents/${document.storedFileName}"))
+                        file.inputStream().buffered().use { it.copyTo(zip) }
+                        zip.closeEntry()
                     }
                     revisions.forEach { file ->
                         if (file.isFile && file.extension == "json") {
@@ -134,7 +136,9 @@ object BackupArchive {
                         requireNotNull(DocumentsContract.renameDocument(context.contentResolver, staging, fileName)) {
                             "Der aktuelle Sicherungsstand konnte nicht benannt werden. Die vorige Sicherung bleibt erhalten."
                         }
-                        previous?.let { runCatching { DocumentsContract.deleteDocument(context.contentResolver, it) } }
+                        (listOfNotNull(previous) + existingBackups.drop(1)).forEach { obsolete ->
+                            runCatching { DocumentsContract.deleteDocument(context.contentResolver, obsolete) }
+                        }
                     } catch (error: Exception) {
                         previous?.let { old ->
                             runCatching { DocumentsContract.renameDocument(context.contentResolver, old, fileName) }
@@ -152,7 +156,8 @@ object BackupArchive {
         return BackupResult(fileName, createdAt)
     }
 
-    private fun findChild(context: Context, treeUri: Uri, rootId: String, fileName: String): Uri? {
+    private fun findChildren(context: Context, treeUri: Uri, rootId: String, fileName: String): List<Uri> {
+        val matches = mutableListOf<Uri>()
         val children = DocumentsContract.buildChildDocumentsUriUsingTree(treeUri, rootId)
         val projection = arrayOf(DocumentsContract.Document.COLUMN_DOCUMENT_ID, OpenableColumns.DISPLAY_NAME)
         context.contentResolver.query(children, projection, null, null, null)?.use { cursor ->
@@ -160,11 +165,11 @@ object BackupArchive {
             val nameIndex = cursor.getColumnIndexOrThrow(OpenableColumns.DISPLAY_NAME)
             while (cursor.moveToNext()) {
                 if (cursor.getString(nameIndex) == fileName) {
-                    return DocumentsContract.buildDocumentUriUsingTree(treeUri, cursor.getString(idIndex))
+                    matches += DocumentsContract.buildDocumentUriUsingTree(treeUri, cursor.getString(idIndex))
                 }
             }
         }
-        return null
+        return matches
     }
 
     fun extract(context: Context, source: Uri): ExtractedBackup {

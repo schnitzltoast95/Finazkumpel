@@ -72,6 +72,8 @@ fun SettingsScreen(
     var reminderError by remember { mutableStateOf<String?>(null) }
     var pendingRestore by remember { mutableStateOf<Uri?>(null) }
     val savedReminderSettings = store.reminderSettings
+
+    LaunchedEffect(Unit) { store.refreshBackupStatus() }
     val reportDirty by rememberUpdatedState(onDirtyChange)
     LaunchedEffect(enabledDays, hour, minute, dueDays, savedReminderSettings) {
         reportDirty(ReminderSettings(enabledDays, hour, minute, dueDays) != savedReminderSettings)
@@ -171,7 +173,7 @@ fun SettingsScreen(
         }
         item {
             reminderError?.let { MissingHint(it) }
-            PrimarySaveButton("Erinnerungen speichern") {
+            PrimarySaveButton("Erinnerungen speichern", enabled = ReminderSettings(enabledDays, hour, minute, dueDays) != savedReminderSettings) {
                 val settings = ReminderSettings(enabledDays, hour, minute, dueDays)
                 runCatching {
                     store.saveReminderSettings(settings)
@@ -189,7 +191,7 @@ fun SettingsScreen(
         item {
             SectionTitle(
                 "Datensicherung",
-                "Der automatische Abgleich hält einen aktuellen Sicherungsstand bereit. Separate Stände legst du nur bei Bedarf an.",
+                "Die App sichert Änderungen im gewählten Rhythmus in eine aktuelle ZIP-Datei. Separate Stände legst du nur bei Bedarf an.",
             )
         }
         item {
@@ -201,20 +203,37 @@ fun SettingsScreen(
                     StatusPill(
                         if (store.backupFolderUri == null) "Nicht eingerichtet"
                         else if (store.lastBackupError != null) "Fehler"
+                        else if (store.hasPendingBackup) "Änderungen warten auf Sicherung"
                         else "Automatisch aktiv",
                         when {
                             store.backupFolderUri == null -> StatusTone.WARNING
                             store.lastBackupError != null -> StatusTone.ERROR
+                            store.hasPendingBackup -> StatusTone.NEUTRAL
                             else -> StatusTone.GOOD
                         },
                     )
                     Text(
                         if (store.backupFolderUri == null) {
-                            "Wähle einen Ordner auf dem Gerät oder in Google Drive. Danach wird die Datei „Quartalsmappe_Aktuell.zip“ nach Änderungen zuverlässig aktualisiert."
+                            "Wähle einen Ordner auf dem Gerät oder in Google Drive. Danach legt die App die erste Sicherung sofort an."
                         } else {
-                            "Nach gespeicherten Änderungen wird der aktuelle Sicherungsstand aktualisiert. Frühere App-Daten bleiben zusätzlich über die geschützte Wiederherstellung zusammenführbar."
+                            "Änderungen werden im gewählten Rhythmus in „Quartalsmappe_Aktuell.zip“ gesichert. Ohne Änderungen entsteht keine neue Datei. Android kann den Zeitpunkt wegen Akku- und Hintergrundregeln verschieben."
                         }
                     )
+                    if (store.backupFolderUri != null) {
+                        Text("Automatischer Abstand", style = MaterialTheme.typography.labelLarge)
+                        LazyRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            items(listOf(1, 3, 7)) { days ->
+                                FilterChip(
+                                    selected = store.backupIntervalDays == days,
+                                    onClick = {
+                                        runCatching { store.changeBackupIntervalDays(days) }
+                                            .onFailure { backupMessage = it.message ?: "Der Abstand konnte nicht gespeichert werden." }
+                                    },
+                                    label = { Text(if (days == 1) "Täglich" else "Alle $days Tage") },
+                                )
+                            }
+                        }
+                    }
                     store.lastBackupAt?.let { date ->
                         Text(
                             "Letzte Sicherung: ${date.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"))} Uhr",
@@ -235,6 +254,12 @@ fun SettingsScreen(
                     )
                     if (store.backupFolderUri != null) {
                         AppSecondaryButton(
+                            text = "Jetzt sichern",
+                            onClick = { runBackup { "Sicherung aktualisiert: ${store.updateBackupNow().fileName}" } },
+                            enabled = !backupBusy,
+                            modifier = Modifier.fillMaxWidth(),
+                        )
+                        AppSecondaryButton(
                             text = "Separaten Sicherungsstand anlegen",
                             onClick = {
                                 runBackup { "Separater Sicherungsstand erstellt: ${store.createBackupSnapshot().fileName}" }
@@ -246,7 +271,7 @@ fun SettingsScreen(
                     AppSecondaryButton(
                         text = "Sicherung wieder einlesen",
                         enabled = !backupBusy,
-                        onClick = { restoreLauncher.launch(arrayOf("application/zip", "application/octet-stream")) },
+                        onClick = { restoreLauncher.launch(arrayOf("*/*")) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     backupMessage?.let { message ->

@@ -88,9 +88,12 @@ fun DailyCloseEditor(
     }
 
     fun save(close: DailyClose) {
-        runCatching {
-            store.saveDailyClose(close)
-            selectedUri?.let { uri ->
+        runCatching { store.saveDailyClose(close) }.onFailure {
+            error = it.message ?: "Der Tagesabschluss konnte nicht gespeichert werden"
+            return
+        }
+        selectedUri?.let { uri ->
+            runCatching {
                 val q = Quarter.current(date)
                 store.importDocument(
                     source = uri,
@@ -100,14 +103,15 @@ fun DailyCloseEditor(
                     periodYear = q.year,
                     periodQuarter = q.number,
                 )
+            }.onFailure {
+                error = "Der Tagesabschluss ist gespeichert, aber der Beleg konnte nicht angehängt werden: " +
+                    (it.message ?: "Bitte wähle die Datei erneut aus und versuche es noch einmal.")
+                return
             }
-        }.onSuccess {
-            error = null
-            reportDirty(false)
-            onDone()
-        }.onFailure {
-            error = it.message ?: "Der Tagesabschluss konnte nicht gespeichert werden"
         }
+        error = null
+        reportDirty(false)
+        onDone()
     }
 
     LazyColumn(

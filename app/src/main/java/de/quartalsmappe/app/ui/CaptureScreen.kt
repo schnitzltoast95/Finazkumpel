@@ -1,6 +1,7 @@
 package de.quartalsmappe.app.ui
 
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.selection.toggleable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -189,10 +190,10 @@ internal fun CustomDocumentTypeDialog(store: AppStore, onDismiss: () -> Unit, on
                     singleLine = true, modifier = Modifier.fillMaxWidth().testTag("custom_type_name"),
                 )
                 Row(
-                    Modifier.fillMaxWidth().clickable { annual = !annual }.heightIn(min = 48.dp),
+                    Modifier.fillMaxWidth().toggleable(value = annual, role = Role.Checkbox, onValueChange = { annual = it }).heightIn(min = 48.dp),
                     verticalAlignment = Alignment.CenterVertically,
                 ) {
-                    Checkbox(checked = annual, onCheckedChange = { annual = it })
+                    Checkbox(checked = annual, onCheckedChange = null)
                     Text("Gilt für ein ganzes Jahr", style = MaterialTheme.typography.bodyMedium)
                 }
                 Text("Sonst wählst du beim Erfassen das passende Quartal.", style = MaterialTheme.typography.bodySmall)

@@ -2,9 +2,8 @@ package de.quartalsmappe.app.data
 
 import android.content.Context
 import android.content.Intent
+import android.content.SharedPreferences
 import android.net.Uri
-import android.os.Handler
-import android.os.Looper
 import android.provider.OpenableColumns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -26,19 +25,18 @@ import java.time.DayOfWeek
 import java.time.LocalDate
 import java.time.LocalDateTime
 import java.util.UUID
-import java.util.concurrent.Executors
-import java.util.concurrent.ScheduledFuture
-import java.util.concurrent.TimeUnit
 
-class AppStore(private val context: Context) {
+class AppStore(private val context: Context, scheduleBackups: Boolean = true) {
     private val preferences = context.getSharedPreferences("quartalsmappe_data", Context.MODE_PRIVATE)
     private val backupPreferences = context.getSharedPreferences("quartalsmappe_backup", Context.MODE_PRIVATE)
+    private val backupListener = SharedPreferences.OnSharedPreferenceChangeListener { _, key ->
+        if (key in setOf("last_backup_at", "last_backup_error", "changed_generation", "backed_up_generation")) {
+            refreshBackupStatus()
+        }
+    }
     private val appearancePreferences = context.getSharedPreferences("quartalsmappe_appearance", Context.MODE_PRIVATE)
     private val documentsDir = File(context.filesDir, "documents").apply { mkdirs() }
     private val revisionsDir = File(context.filesDir, "revisions").apply { mkdirs() }
-    private val backupExecutor = Executors.newSingleThreadScheduledExecutor()
-    private val mainHandler = Handler(Looper.getMainLooper())
-    private var pendingBackup: ScheduledFuture<*>? = null
 
     var dailyCloses by mutableStateOf<List<DailyClose>>(emptyList())
         private set
@@ -67,6 +65,14 @@ class AppStore(private val context: Context) {
     var backupFolderUri by mutableStateOf(backupPreferences.getString("folder_uri", null))
         private set
 
+    var backupIntervalDays by mutableStateOf(backupPreferences.getInt("interval_days", 1).takeIf { it in listOf(1, 3, 7) } ?: 1)
+        private set
+
+    var hasPendingBackup by mutableStateOf(
+        backupPreferences.getLong("changed_generation", 0) > backupPreferences.getLong("backed_up_generation", -1)
+    )
+        private set
+
     var lastBackupAt by mutableStateOf(
         backupPreferences.getString("last_backup_at", null)?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
     )
@@ -80,6 +86,10 @@ class AppStore(private val context: Context) {
 
     init {
         load()
+        if (scheduleBackups) {
+            backupPreferences.registerOnSharedPreferenceChangeListener(backupListener)
+            BackupSchedule.update(context, backupFolderUri != null, backupIntervalDays)
+        }
     }
 
     fun customType(id: String?): CustomDocumentType? =
@@ -163,13 +173,43 @@ class AppStore(private val context: Context) {
             backupPreferences.edit().putString("folder_uri", uri.toString()).commit()
         ) { "Der Sicherungsordner konnte nicht gespeichert werden." }
         backupFolderUri = uri.toString()
-        return updateBackupNow()
+        return try {
+            updateBackupNow()
+        } finally {
+            BackupSchedule.update(context, true, backupIntervalDays)
+        }
     }
 
-    fun updateBackupNow(): BackupResult {
+    fun changeBackupIntervalDays(days: Int) {
+        require(days in listOf(1, 3, 7)) { "Bitte einen gültigen Sicherungsabstand wählen." }
+        check(backupPreferences.edit().putInt("interval_days", days).commit()) {
+            "Der Sicherungsabstand konnte nicht gespeichert werden."
+        }
+        backupIntervalDays = days
+        BackupSchedule.update(context, backupFolderUri != null, days)
+    }
+
+    fun refreshBackupStatus() {
+        lastBackupAt = backupPreferences.getString("last_backup_at", null)?.let { runCatching { LocalDateTime.parse(it) }.getOrNull() }
+        lastBackupError = backupPreferences.getString("last_backup_error", null)
+        hasPendingBackup = backupPreferences.getLong("changed_generation", 0) >
+            backupPreferences.getLong("backed_up_generation", -1)
+    }
+
+    fun updateBackupNow(): BackupResult = synchronized(BackupSchedule.backupLock) {
+        performBackup()
+    }
+
+    internal fun updateBackupIfPending(): BackupResult? = synchronized(BackupSchedule.backupLock) {
+        refreshBackupStatus()
+        if (hasPendingBackup) performBackup() else null
+    }
+
+    private fun performBackup(): BackupResult {
         requireReadableState()
         val uri = backupFolderUri?.let(Uri::parse)
             ?: error("Bitte zuerst einen Sicherungsordner auswählen.")
+        val generation = backupPreferences.getLong("changed_generation", 0)
         return runCatching {
             BackupArchive.updateCurrent(
                 context = context,
@@ -179,7 +219,7 @@ class AppStore(private val context: Context) {
                 revisions = revisionFiles(),
             )
         }.onSuccess { result ->
-            recordBackupSuccess(result.createdAt)
+            recordBackupSuccess(result.createdAt, generation)
         }.onFailure { failure ->
             recordBackupFailure(failure.message ?: "Sicherung fehlgeschlagen")
         }.getOrThrow()
@@ -497,7 +537,13 @@ class AppStore(private val context: Context) {
         require(preferences.edit().putString("data", data).commit()) {
             "Die Daten konnten nicht dauerhaft gespeichert werden. Es wurde nichts als erfolgreich bestätigt."
         }
-        scheduleAutomaticBackup(data)
+        synchronized(BackupSchedule.generationLock) {
+            val next = backupPreferences.getLong("changed_generation", 0) + 1
+            check(backupPreferences.edit().putLong("changed_generation", next).commit()) {
+                "Die Änderung wurde gespeichert, aber der Sicherungsstatus konnte nicht aktualisiert werden."
+            }
+        }
+        hasPendingBackup = true
     }
 
     private fun writeRevision(entityType: String, entityId: String, previous: JSONObject) {
@@ -516,30 +562,18 @@ class AppStore(private val context: Context) {
         }
     }
 
-    private fun scheduleAutomaticBackup(dataJson: String = serializeState()) {
-        val folder = backupFolderUri ?: return
-        val documentSnapshot = documents.map { it to fileFor(it) }
-        pendingBackup?.cancel(false)
-        pendingBackup = backupExecutor.schedule({
-            runCatching {
-                BackupArchive.updateCurrent(context, Uri.parse(folder), dataJson, documentSnapshot, revisionFiles())
-            }.onSuccess { result ->
-                mainHandler.post { recordBackupSuccess(result.createdAt) }
-            }.onFailure { failure ->
-                mainHandler.post { recordBackupFailure(failure.message ?: "Automatische Sicherung fehlgeschlagen") }
-            }
-        }, 2, TimeUnit.SECONDS)
-    }
-
     private fun revisionFiles(): List<File> = revisionsDir.listFiles()?.filter { it.isFile && it.extension == "json" }.orEmpty()
 
-    private fun recordBackupSuccess(createdAt: LocalDateTime) {
-        backupPreferences.edit()
-            .putString("last_backup_at", createdAt.toString())
-            .remove("last_backup_error")
-            .commit()
-        lastBackupAt = createdAt
-        lastBackupError = null
+    private fun recordBackupSuccess(createdAt: LocalDateTime, generation: Long) {
+        synchronized(BackupSchedule.generationLock) {
+            val backedUp = maxOf(generation, backupPreferences.getLong("backed_up_generation", -1))
+            check(backupPreferences.edit()
+                .putString("last_backup_at", createdAt.toString())
+                .putLong("backed_up_generation", backedUp)
+                .remove("last_backup_error")
+                .commit()) { "Der Sicherungsstatus konnte nicht gespeichert werden." }
+        }
+        refreshBackupStatus()
     }
 
     private fun recordBackupFailure(message: String) {

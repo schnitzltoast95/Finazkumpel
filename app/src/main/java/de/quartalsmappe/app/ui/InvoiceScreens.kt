@@ -24,7 +24,6 @@ import androidx.compose.material3.ExposedDropdownMenuBox
 import androidx.compose.material3.ExposedDropdownMenuDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
-import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.MenuAnchorType
@@ -284,7 +283,6 @@ fun InvoiceEditorScreen(
     var error by remember { mutableStateOf<String?>(null) }
     val listState = rememberLazyListState()
     val errorItemIndex = 1 +
-        (if (existing == null && effectiveMode == InvoiceStartMode.INVOICE && onChooseExisting != null) 1 else 0) +
         (if (existing != null && existing.invoiceDate == null && effectiveMode == InvoiceStartMode.INVOICE) 1 else 0)
     LaunchedEffect(error) {
         if (error != null) listState.animateScrollToItem(errorItemIndex)
@@ -312,9 +310,12 @@ fun InvoiceEditorScreen(
     }
 
     fun save(invoice: InvoiceCase) {
-        runCatching {
-            store.saveInvoice(invoice)
-            selectedUri?.let { uri ->
+        runCatching { store.saveInvoice(invoice) }.onFailure {
+            error = it.message ?: "Der Vorgang konnte nicht gespeichert werden"
+            return
+        }
+        selectedUri?.let { uri ->
+            runCatching {
                 val date = invoiceDate ?: orderDate ?: today
                 val q = Quarter.current(date)
                 store.importDocument(
@@ -325,13 +326,14 @@ fun InvoiceEditorScreen(
                     periodYear = q.year,
                     periodQuarter = q.number,
                 )
+            }.onFailure {
+                error = "Der Vorgang ist gespeichert, aber die Datei konnte nicht angehängt werden: " +
+                    (it.message ?: "Bitte wähle die Datei erneut aus und versuche es noch einmal.")
+                return
             }
-        }.onSuccess {
-            error = null
-            onDone(draftId)
-        }.onFailure {
-            error = it.message ?: "Der Vorgang konnte nicht gespeichert werden"
         }
+        error = null
+        onDone(draftId)
     }
 
     LazyColumn(
@@ -340,24 +342,6 @@ fun InvoiceEditorScreen(
         contentPadding = PaddingValues(16.dp, 16.dp, 16.dp, 32.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp),
     ) {
-        if (existing == null && effectiveMode == InvoiceStartMode.INVOICE && onChooseExisting != null) {
-            item {
-                AppSurfaceCard(
-                    containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                    contentColor = MaterialTheme.colorScheme.onSecondaryContainer,
-                ) {
-                    Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("Gehört die Rechnung zu einem Eintrag?", style = MaterialTheme.typography.titleMedium)
-                        Text("Wähle eine vorhandene Bestellung oder Rechnung, damit alles zusammenbleibt.", style = MaterialTheme.typography.bodyMedium)
-                        AppSecondaryButton(
-                            text = "Vorhandenen Eintrag auswählen",
-                            modifier = Modifier.fillMaxWidth(),
-                            onClick = onChooseExisting,
-                        )
-                    }
-                }
-            }
-        }
         if (existing != null && existing.invoiceDate == null && effectiveMode == InvoiceStartMode.INVOICE) {
             item {
                 Text(
@@ -384,6 +368,15 @@ fun InvoiceEditorScreen(
                 "Grundangaben",
                 "Wer hat die Rechnung oder Bestellung gestellt? Der Betrag darf offenbleiben, wenn er noch nicht feststeht.",
             )
+        }
+        if (existing == null && effectiveMode == InvoiceStartMode.INVOICE && onChooseExisting != null) {
+            item {
+                AppSecondaryButton(
+                    text = "Zu vorhandener Bestellung hinzufügen",
+                    modifier = Modifier.fillMaxWidth(),
+                    onClick = onChooseExisting,
+                )
+            }
         }
         item {
             SupplierField(
@@ -715,19 +708,15 @@ fun InvoiceDetailScreen(
             }
         }
         item {
-            SectionTitle("Verlauf")
+            SectionTitle("Zeitlicher Verlauf")
             Spacer(Modifier.height(6.dp))
             AppSurfaceCard {
                 Column(Modifier.padding(horizontal = 16.dp)) {
-                    TimelineRow("Bestellt am", invoice.orderDate)
-                    HorizontalDivider()
-                    TimelineRow("Rechnung vom", invoice.invoiceDate)
-                    HorizontalDivider()
-                    TimelineRow("Geliefert am", invoice.deliveryDate)
-                    HorizontalDivider()
-                    TimelineRow("Bezahlen bis", invoice.dueDate)
-                    HorizontalDivider()
-                    TimelineRow("Bezahlt am", invoice.paidDate)
+                    invoice.orderDate?.let { TimelineRow("Bestellt am", it) }
+                    invoice.invoiceDate?.let { TimelineRow("Rechnung vom", it) }
+                    invoice.deliveryDate?.let { TimelineRow("Geliefert am", it) }
+                    invoice.dueDate?.let { TimelineRow("Bezahlen bis", it) }
+                    invoice.paidDate?.let { TimelineRow("Bezahlt am", it) }
                 }
             }
         }
