@@ -82,7 +82,7 @@ class ReminderReceiver : BroadcastReceiver() {
             PendingIntent.FLAG_UPDATE_CURRENT or PendingIntent.FLAG_IMMUTABLE,
         )
         val notification = NotificationCompat.Builder(context, channelId)
-            .setSmallIcon(R.drawable.ic_launcher_foreground)
+            .setSmallIcon(R.drawable.ic_notification)
             .setContentTitle("Tagesabschluss noch offen")
             .setContentText("Den Betrag vom heutigen Z-Abschlag jetzt eintragen.")
             .setContentIntent(openApp)

@@ -19,7 +19,7 @@ Rechnungen und Quartalsunterlagen.
 - helle, ruhige Studio-Farbwelt in Grün, Limette und warmem Korall
 - auswählbarer Begleiter: Eule (mit ruhigem/zerzaustem Aufgaben-Zustand), Biene, Stachelschwein, Schaf oder Nacktkatze
 - zehn auswählbare Farbschemen mit Hell-/Dunkelmodus; Farbe und Tier werden sofort lokal gespeichert, unabhängig von Belegen und Sicherungen
-- helles, abstraktes Eulenlogo aus getrennten Brauen, Blitz-Zausel, zwei Ringen und Haken
+- neutrales App-Icon mit Dokument und Haken, unabhängig vom gewählten Begleiter
 - ausdrückliche Bestätigung vor jeder Änderung an bestehenden Einträgen
 - lokale, unveränderliche Vorversion bei jeder bestätigten Änderung
 - automatische ZIP-Sicherung in einen frei gewählten Android-Ordner; auf Wunsch separate Sicherungsstände
