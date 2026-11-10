@@ -173,8 +173,11 @@ class AppStore(private val context: Context, scheduleBackups: Boolean = true) {
             backupPreferences.edit().putString("folder_uri", uri.toString()).commit()
         ) { "Der Sicherungsordner konnte nicht gespeichert werden." }
         backupFolderUri = uri.toString()
-        BackupSchedule.update(context, true, backupIntervalDays)
-        return updateBackupNow()
+        return try {
+            updateBackupNow()
+        } finally {
+            BackupSchedule.update(context, true, backupIntervalDays)
+        }
     }
 
     fun changeBackupIntervalDays(days: Int) {
@@ -193,7 +196,16 @@ class AppStore(private val context: Context, scheduleBackups: Boolean = true) {
             backupPreferences.getLong("backed_up_generation", -1)
     }
 
-    fun updateBackupNow(): BackupResult {
+    fun updateBackupNow(): BackupResult = synchronized(BackupSchedule.backupLock) {
+        performBackup()
+    }
+
+    internal fun updateBackupIfPending(): BackupResult? = synchronized(BackupSchedule.backupLock) {
+        refreshBackupStatus()
+        if (hasPendingBackup) performBackup() else null
+    }
+
+    private fun performBackup(): BackupResult {
         requireReadableState()
         val uri = backupFolderUri?.let(Uri::parse)
             ?: error("Bitte zuerst einen Sicherungsordner auswählen.")

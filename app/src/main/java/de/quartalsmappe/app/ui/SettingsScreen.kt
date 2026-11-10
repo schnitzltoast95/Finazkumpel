@@ -208,6 +208,7 @@ fun SettingsScreen(
                         when {
                             store.backupFolderUri == null -> StatusTone.WARNING
                             store.lastBackupError != null -> StatusTone.ERROR
+                            store.hasPendingBackup -> StatusTone.NEUTRAL
                             else -> StatusTone.GOOD
                         },
                     )
@@ -270,7 +271,7 @@ fun SettingsScreen(
                     AppSecondaryButton(
                         text = "Sicherung wieder einlesen",
                         enabled = !backupBusy,
-                        onClick = { restoreLauncher.launch(arrayOf("application/zip", "application/octet-stream")) },
+                        onClick = { restoreLauncher.launch(arrayOf("*/*")) },
                         modifier = Modifier.fillMaxWidth(),
                     )
                     backupMessage?.let { message ->

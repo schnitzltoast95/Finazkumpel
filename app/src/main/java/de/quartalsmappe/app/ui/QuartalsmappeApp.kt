@@ -601,7 +601,7 @@ private fun HomeScreen(
             },
             when {
                 store.lastBackupError != null -> StatusTone.ERROR
-                backupReady && store.hasPendingBackup -> StatusTone.WARNING
+                backupReady && store.hasPendingBackup -> StatusTone.NEUTRAL
                 backupReady -> StatusTone.GOOD
                 else -> StatusTone.WARNING
             },
