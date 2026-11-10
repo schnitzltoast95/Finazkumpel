@@ -1,4 +1,4 @@
-# Release 0.27.0
+# Release 0.28.0
 
 Die APK wird mit einem eigenen PKCS#12-Schlüssel signiert. Schlüssel und Passwort
 liegen ausschließlich im privaten Repository `schnitzltoast95/HaulaufDev` unter
@@ -23,9 +23,9 @@ liegen ausschließlich im privaten Repository `schnitzltoast95/HaulaufDev` unter
    `7D8751434F02AC31F5F11881DBE6F5BA904E169CC8CD307A4F44F7170A77CA52`
    sein.
 
-Der geprüfte Build 0.27.0 hat APK-SHA-256
-`11315A369D9CF07A73D608941810DEF4DF0C7B1D33CF3A4B8875DF3C52AB7B59`.
-Eine identische Kopie ist unter `releases/Finanzkumpel-0.27.0.apk`
+Der geprüfte Build 0.28.0 hat APK-SHA-256
+`8CE9D2AF64CF881344757BFB0DB9FB907FF73C518A4529BCB0B8D80BEED0E809`.
+Eine identische Kopie ist unter `releases/Finanzkumpel-0.28.0.apk`
 versioniert.
 
 `keystore.properties` und der private Schlüssel sind in `.gitignore` ausgeschlossen.
