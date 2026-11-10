@@ -171,7 +171,7 @@ fun SettingsScreen(
         }
         item {
             reminderError?.let { MissingHint(it) }
-            PrimarySaveButton("Erinnerungen speichern") {
+            PrimarySaveButton("Erinnerungen speichern", enabled = ReminderSettings(enabledDays, hour, minute, dueDays) != savedReminderSettings) {
                 val settings = ReminderSettings(enabledDays, hour, minute, dueDays)
                 runCatching {
                     store.saveReminderSettings(settings)
