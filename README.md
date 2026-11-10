@@ -82,7 +82,9 @@ Die Arbeitsdaten liegen im privaten App-Speicher des Handys. Unter
 „Einstellungen > Datensicherung“ sollte vor dem Einsatz mit echten
 Geschäftsdaten zusätzlich ein Ordner auf dem Gerät oder bei einem über Android
 eingebundenen Cloud-Anbieter gewählt werden. Die App aktualisiert dort nach
-gespeicherten Änderungen `Quartalsmappe_Aktuell.zip`. Unter Einstellungen kann
+gespeicherten Änderungen im einstellbaren Abstand (täglich, alle drei oder
+sieben Tage) `Quartalsmappe_Aktuell.zip`. Ohne Änderungen wird keine neue Datei
+angelegt. Android kann den Zeitpunkt im Hintergrund verschieben. Unter Einstellungen kann
 zusätzlich ein separater, datierter Sicherungsstand angelegt werden. Die ZIPs
 enthalten die aktuellen Daten, Originaldateien und gespeicherte Vorversionen.
 

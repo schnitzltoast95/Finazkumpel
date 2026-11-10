@@ -588,17 +588,20 @@ private fun HomeScreen(
         add(HomeOverviewItem(
             when {
                 store.lastBackupError != null -> "Datensicherung prüfen"
+                backupReady && store.hasPendingBackup -> "Sicherung steht aus"
                 backupReady -> "Datensicherung aktiv"
                 else -> "Datensicherung einrichten"
             },
             when {
                 store.lastBackupError != null -> "Letzter Sicherungsversuch fehlgeschlagen"
+                backupReady && store.hasPendingBackup -> "Änderungen warten auf die nächste automatische Sicherung"
                 backupReady && lastBackupAt != null -> "Zuletzt ${lastBackupAt.format(DateTimeFormatter.ofPattern("dd.MM.yyyy, HH:mm"))} Uhr gesichert"
-                backupReady -> "Aktueller Sicherungsstand wird automatisch gepflegt"
+                backupReady -> "Aktueller Sicherungsstand im gewählten Rhythmus"
                 else -> "Einmalige Einrichtung · unabhängig vom Quartal"
             },
             when {
                 store.lastBackupError != null -> StatusTone.ERROR
+                backupReady && store.hasPendingBackup -> StatusTone.WARNING
                 backupReady -> StatusTone.GOOD
                 else -> StatusTone.WARNING
             },

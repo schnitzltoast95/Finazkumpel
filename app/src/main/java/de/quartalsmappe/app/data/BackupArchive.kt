@@ -95,11 +95,12 @@ object BackupArchive {
                     zip.closeEntry()
 
                     documents.forEach { (document, file) ->
-                        if (file.exists()) {
-                            zip.putNextEntry(ZipEntry("documents/${document.storedFileName}"))
-                            file.inputStream().buffered().use { it.copyTo(zip) }
-                            zip.closeEntry()
+                        require(file.isFile && file.canRead()) {
+                            "Die Originaldatei ${document.originalFileName} fehlt. Die Sicherung wurde nicht überschrieben."
                         }
+                        zip.putNextEntry(ZipEntry("documents/${document.storedFileName}"))
+                        file.inputStream().buffered().use { it.copyTo(zip) }
+                        zip.closeEntry()
                     }
                     revisions.forEach { file ->
                         if (file.isFile && file.extension == "json") {
