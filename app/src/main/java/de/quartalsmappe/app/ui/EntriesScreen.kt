@@ -178,7 +178,7 @@ private fun entryRows(store: AppStore, clock: AppClock): List<EntryRowData> = bu
         add(EntryRowData(
             "invoice_${invoice.id}", invoice.id, DocumentOwner.INVOICE, invoice.supplier,
             if (invoice.invoiceDate != null) "invoice" else "order", type, date?.formatGerman() ?: "Datum offen",
-            invoice.amountCents?.let { centsToGerman(it) }, status,
+            centsToGerman(invoice.amountCents), status,
             signals.isOverdue || missingFile(files), !signals.isDone, invoice.paidDate == null && invoice.invoiceDate != null,
             files, "$type ${invoice.supplier} ${invoice.invoiceNumber} ${invoice.note} ${files.joinToString { it.originalFileName }}",
             date?.toString() ?: invoice.createdAt.toLocalDate().toString(),
