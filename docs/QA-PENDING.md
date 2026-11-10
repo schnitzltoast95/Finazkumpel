@@ -7,6 +7,9 @@ isolierten App `de.quartalsmappe.app.uitest` ausgeführt. Der optionale
 Screenshot-Fixture-Test wurde dabei erwartungsgemäß übersprungen und danach
 separat erfolgreich gestartet. Die synthetischen Daten sind für den manuellen
 Test im isolierten App-Paket vorhanden. Die normale App wurde nicht gelöscht.
+Der vollständige Testlauf fand vor dem abschließenden Drive-Fix statt
+(Test-APK mit Versionscode 27). Den Drive-Fix und die Version 0.28.0 habe ich
+anschließend direkt auf dem Gerät geprüft, ohne die Testdaten erneut zu leeren.
 
 Die Unit-Tests und Android Lint waren erfolgreich. Die signierte Release-APK
 0.28.0 wurde gebaut, auf dem Gerät gestartet und mit `apksigner` gegen den
